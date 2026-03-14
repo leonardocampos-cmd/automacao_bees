@@ -33,16 +33,15 @@ def main():
     arquivo = preparar_dados()
     if arquivo.empty:
         logging.info("Nenhum pedido elegível para cancelamento encontrado.")
-        return
-
-    # Passo 2: Cancelar CPF
-    logging.info(f"Encontrados {len(arquivo)} pedidos elegíveis. Iniciando cancelamento...")
-    try:
-        cancelar_pedidos(arquivo)
-        logging.info("Cancelamento de CPF concluído com sucesso.")
-    except Exception as e:
-        logging.error(f"Erro no cancelamento de CPF: {e}")
-        return
+    else:
+        # Passo 2: Cancelar CPF
+        logging.info(f"Encontrados {len(arquivo)} pedidos elegíveis. Iniciando cancelamento...")
+        try:
+            cancelar_pedidos(arquivo)
+            logging.info("Cancelamento de CPF concluído com sucesso.")
+        except Exception as e:
+            logging.error(f"Erro no cancelamento de CPF: {e}")
+            return
 
     # Passo 3: Consultar CNPJs
     logging.info("Passo 3: Consultando CNPJs...")
