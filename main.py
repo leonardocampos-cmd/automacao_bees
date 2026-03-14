@@ -12,6 +12,7 @@ import os
 import logging
 from cancela_cpf import preparar_dados, cancelar_pedidos
 from consulta_cnpj import consultar_cnpjs
+from tratar_cnpj_rj import tratar_cnpj_rj
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -50,6 +51,19 @@ def main():
         logging.info("Consulta de CNPJs concluída com sucesso.")
     except Exception as e:
         logging.error(f"Erro na consulta de CNPJs: {e}")
+        return
+
+    # Passo 4: Tratar dados CNPJ RJ
+    logging.info("Passo 4: Tratando dados CNPJ RJ...")
+    try:
+        df_tratado = tratar_cnpj_rj()
+        logging.info("Tratamento de dados CNPJ RJ concluído com sucesso.")
+        # Salvar o DataFrame tratado em CSV
+        caminho_tratado = os.path.join("relatorios", "dados_tratados_cnpj_rj.csv")
+        df_tratado.to_csv(caminho_tratado, index=False, encoding='utf-8')
+        logging.info(f"Dados tratados salvos em {caminho_tratado}")
+    except Exception as e:
+        logging.error(f"Erro no tratamento de dados CNPJ RJ: {e}")
         return
 
     logging.info("Rotina principal concluída.")

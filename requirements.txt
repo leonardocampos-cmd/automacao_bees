@@ -1,3 +1,7 @@
 selenium
 pandas
 python-dotenv
+oracledb
+sqlalchemy
+streamlit
+streamlit

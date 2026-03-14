@@ -38,8 +38,8 @@ def cancelar_pedidos(arquivo):
     wait = WebDriverWait(driver, 20)  
 
     # --- Login ---
-    email = os.getenv('EMAIL_CANCEL')
-    senha = os.getenv('SENHA_CANCEL')
+    email = os.getenv('EMAIL1')
+    senha = os.getenv('SENHA1')
     login(driver, wait, email, senha)
 
     # --- Itera pelos pedidos ---

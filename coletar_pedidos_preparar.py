@@ -86,116 +86,126 @@ def coletar_detalhes(driver, wait, df_pedidos_ativos, pedidos_existentes, filial
         if order_str in pedidos_processados or order_str in pedidos_existentes:
             continue
 
-        logging.info(f"==> Extraindo Detalhes (Seletores Específicos): {order_str}")
+        logging.info(f"==> Processando Pedido: {order_str}")
         retries = 0
         while retries < max_retries:
             try:
                 driver.get(f'https://one.bees.com/order-management/active-orders/{order_str}')
-                
-                # Espera o carregamento dos itens da tabela
                 wait.until(EC.presence_of_element_located((By.XPATH, "//table//tr")))
+                time.sleep(3) 
+
+                # --- FUNÇÕES AUXILIARES DE CAPTURA ---
                 
-                # 1. Captura do Centro de Distribuição (usando data-testid e classe normal)
-                try:
-                    cd_elem = driver.find_element(By.XPATH, "//*[@data-testid='order-details-ddc-info']//*[contains(@class, '-weight-normal')]")
-                    cd = cd_elem.text.strip()
-                except:
-                    cd = row_lista.get('Centro de Distribuição')
-
-                # 2. Captura do Status
-                try:
-                    status_elem = driver.find_element(By.XPATH, "//*[@data-testid='order-details-status']")
-                    status = status_elem.text.strip()
-                except:
-                    status = row_lista.get('Status')
-
-                # 3. Captura do Endereço (Seletor da div c-jJgXmn)
-                # Esperamos até que o texto não seja o placeholder de carregamento
-                try:
-                    xpath_end = "//div[@class='c-jJgXmn']"
-                    wait.until(lambda d: "Selecione a data" not in d.find_element(By.XPATH, xpath_end).text)
-                    endereco_full = driver.find_element(By.XPATH, xpath_end).text.strip()
-                except:
-                    endereco_full = "Não capturado"
-
-                # 4. Parsing de Endereço, Cidade, CEP e Coordenadas
-                cidade, cep, coords = "", "", ""
-                if endereco_full and endereco_full != "Não capturado":
-                    # Busca CEP (00000-000)
-                    match_cep = re.search(r'\d{5}-?\d{3}', endereco_full)
-                    if match_cep: cep = match_cep.group()
-                    
-                    # Busca Coordenadas (Latitude/Longitude costumam ter o padrão -00.000, -00.000)
-                    match_coords = re.search(r'(-?\d{1,2}\.\d+,\s*-?\d{1,2}\.\d+)', endereco_full)
-                    if match_coords: coords = match_coords.group()
-
-                    # Separa Cidade/UF (Geralmente a penúltima parte antes da sigla do estado)
-                    partes = [p.strip() for p in endereco_full.split(',')]
-                    if len(partes) >= 3:
-                        # Pega o item que contém o nome da cidade (normalmente antes de MG, SP, etc)
-                        cidade = partes[-2] if len(partes[-1]) <= 3 else partes[-1]
-
-                # 5. Captura de ID Negócio / Documento / Cliente (Via classes semibold/normal)
-                def capturar_por_labels_bees(label_text):
+                def get_p_texts_by_label(label_name):
+                    """Pega todos os parágrafos de valor dentro de uma div c-jJgXmn baseado no título"""
                     try:
-                        xpath = f"//*[contains(@class, '-weight-semibold') and contains(text(), '{label_text}')]/parent::div//*[contains(@class, '-weight-normal')]"
+                        xpath = f"//p[contains(text(), '{label_name}')]/parent::div/p"
+                        elements = driver.find_elements(By.XPATH, xpath)
+                        return [e.text.strip() for e in elements][1:]
+                    except: return []
+
+                def capturar_valor_pelo_label(label_texto):
+                    """Pega o parágrafo imediatamente após o título (sibling)"""
+                    try:
+                        xpath = f"//p[contains(text(), '{label_texto}')]/following-sibling::p"
                         return driver.find_element(By.XPATH, xpath).text.strip()
                     except: return None
 
-                documento = capturar_por_labels_bees("Tax ID") or capturar_por_labels_bees("CPF")
-                id_negocio = capturar_por_labels_bees("ID do negócio")
-                id_conta = capturar_por_labels_bees("ID da conta do cliente")
-                forma_pgto = capturar_por_labels_bees("pagamento") or row_lista.get('Forma de Pagamento')
+                # --- EXTRAÇÃO DOS DADOS DO CLIENTE E GERAIS ---
 
-                # 6. Itens do Pedido
+                # 1. IDs e Pagamento
+                forma_pagamento = capturar_valor_pelo_label("pagamento") or row_lista.get('Forma de Pagamento')
+                id_negocio = capturar_valor_pelo_label("ID do negócio")
+                id_conta = capturar_valor_pelo_label("ID da conta do cliente")
+
+                # 2. Documento (Tax ID) e Inscrição Estadual
+                tax_info = get_p_texts_by_label("Tax ID")
+                documento = next((s.strip() for s in tax_info if "CPF" in s or "CNPJ" in s), None)
+                ie = next((s.replace("INSCRICAO_ESTADUAL: ", "").strip() for s in tax_info if "INSCRICAO" in s), "ISENTO")
+
+                # 3. Nome Comercial
+                nome_comercial_lista = get_p_texts_by_label("Nome comercial")
+                nome_comercial = nome_comercial_lista[0] if nome_comercial_lista else row_lista.get('Nome Comercial')
+
+                # 4. Endereço de Entrega (Estrutura de 4 linhas)
+                end_lista = get_p_texts_by_label("Endereço de entrega")
+                endereco_rua = end_lista[0] if len(end_lista) > 0 else "Não capturado"
+                cidade_uf = end_lista[1] if len(end_lista) > 1 else ""
+                cep = end_lista[2] if len(end_lista) > 2 else ""
+                coords = end_lista[3] if len(end_lista) > 3 else ""
+
+                # 5. Contatos (Telefones e Emails)
+                try:
+                    xpath_tels = "//p[contains(text(), 'telefone')]/parent::div/p[contains(@class, 'weight-normal')]"
+                    lista_telefones = [e.text.strip() for e in driver.find_elements(By.XPATH, xpath_tels)]
+                    xpath_emails = "//p[contains(text(), 'E-mail')]/parent::div/p[contains(@class, 'weight-normal')]"
+                    lista_emails = [e.text.strip() for e in driver.find_elements(By.XPATH, xpath_emails)]
+                except:
+                    lista_telefones, lista_emails = [], []
+
+                tel1 = lista_telefones[0] if len(lista_telefones) > 0 else row_lista.get('Telefone 1')
+                tel2 = lista_telefones[1] if len(lista_telefones) > 1 else row_lista.get('Telefone 2')
+                email1 = lista_emails[0] if len(lista_emails) > 0 else row_lista.get('Email 1')
+                email2 = lista_emails[1] if len(lista_emails) > 1 else row_lista.get('Email 2')
+
+                # 6. Status e Centro de Distribuição
+                try:
+                    status = driver.find_element(By.XPATH, "//*[@data-testid='order-details-status']//*[contains(@class, 'weight-normal')]").text.strip()
+                except: status = row_lista.get('Status')
+                
+                try:
+                    cd = driver.find_element(By.XPATH, "//*[@data-testid='order-details-ddc-info']//*[contains(@class, 'weight-normal')]").text.strip()
+                except: cd = row_lista.get('Centro de Distribuição')
+
+                # --- ITENS DO PEDIDO ---
+
                 rows = driver.find_elements(By.XPATH, "//table//tr[td]")
                 for row in rows:
                     try:
+                        nome_prod = row.find_element(By.XPATH, ".//*[contains(@data-testid, 'product_name')]").text.strip()
+                        sku_item = row.find_element(By.XPATH, ".//*[contains(@data-testid, 'product_sku')]").text.strip()
+                        preco_un = row.find_element(By.XPATH, ".//*[contains(@data-testid, 'product_price')]").text.strip()
+                        
                         cols = row.find_elements(By.TAG_NAME, "td")
-                        if len(cols) < 3: continue
-
-                        # Detalhes do Produto (Nome, SKU e Preço na primeira célula)
-                        linhas_prod = cols[0].text.split('\n')
-                        nome_prod = linhas_prod[0]
-                        sku_item = next((s.replace("SKU: ", "").strip() for s in linhas_prod if "SKU" in s), "")
-                        preco_un = next((p.strip() for p in linhas_prod if "$" in p or "R$" in p), "0.00")
+                        qtd_pedida = cols[1].text.strip()
+                        qtd_prepara = cols[2].text.strip()
 
                         detalhes.append({
                             "Numero Pedido": order_str,
                             "Data Pedido": row_lista.get('Data Pedido'),
                             "Centro de Distribuição": cd,
                             "Status": status,
-                            "Forma de Pagamento": forma_pgto,
+                            "Forma de Pagamento": forma_pagamento,
                             "Data Entrega": row_lista.get('Data Entrega'),
                             "Responsavel": row_lista.get('Responsavel'),
                             "Total Pedido": row_lista.get('Total Pedido'),
                             "Documento": documento,
-                            "IE": capturar_por_labels_bees("Inscrição"),
-                            "Nome Comercial": row_lista.get('Nome Comercial'),
-                            "Endereço de Entrega": endereco_full,
-                            "Cidade/UF": cidade,
+                            "IE": ie,
+                            "Nome Comercial": nome_comercial,
+                            "Endereço de Entrega": endereco_rua,
+                            "Cidade/UF": cidade_uf,
                             "CEP": cep,
                             "Coordenadas": coords,
-                            "ID do negócio": id_negocio,
-                            "ID da conta do cliente": id_conta,
+                            "ID do negócio": id_negocio or row_lista.get('ID do negócio'),
+                            "ID da conta do cliente": id_conta or row_lista.get('ID da conta do cliente'),
                             "SKU": sku_item,
                             "Preço": preco_un,
-                            "Quantidade Pedida": cols[1].text.strip(),
+                            "Quantidade Pedida": qtd_pedida,
                             "Nome do Produto": nome_prod,
-                            "Quantidade Preparar": cols[2].text.strip(),
-                            "Telefone 1": row_lista.get('Telefone 1'),
-                            "Telefone 2": row_lista.get('Telefone 2'),
-                            "Email 1": row_lista.get('Email 1')
+                            "Quantidade Preparar": qtd_prepara,
+                            "Telefone 1": tel1,
+                            "Telefone 2": tel2,
+                            "Email 1": email1,
+                            "Email 2": email2
                         })
                     except: continue
 
                 pedidos_processados.add(order_str)
                 break
-
             except Exception as e:
                 retries += 1
                 logging.error(f"Erro no pedido {order_str}: {e}")
-                time.sleep(3)
+                time.sleep(2)
     
     return pd.DataFrame(detalhes)
 
