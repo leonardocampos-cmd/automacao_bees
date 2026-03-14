@@ -150,6 +150,3 @@ def consultar_cnpjs():
     ]
     print(df_resultados)
     print(f"\nConsulta de CNPJs concluída. Os resultados únicos foram salvos em '{caminho_saida}'")
-
-if __name__ == "__main__":
-    consultar_cnpjs()

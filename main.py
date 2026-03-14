@@ -11,7 +11,7 @@ import sys
 import os
 import logging
 from cancela_cpf import preparar_dados, cancelar_pedidos
-import consulta_cnpj
+from consulta_cnpj import consultar_cnpjs
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,7 +47,7 @@ def main():
     # Passo 3: Consultar CNPJs
     logging.info("Passo 3: Consultando CNPJs...")
     try:
-        consulta_cnpj.consultar_cnpjs()
+        consultar_cnpjs()
         logging.info("Consulta de CNPJs concluída com sucesso.")
     except Exception as e:
         logging.error(f"Erro na consulta de CNPJs: {e}")
