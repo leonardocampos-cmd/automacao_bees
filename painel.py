@@ -32,11 +32,16 @@ if pagina == "Início":
     python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
     if st.button("Executar rotina principal (main.py)"):
         with st.spinner("Executando rotina principal..."):
+            st.info("[LOG] Iniciando execução do main.py...")
             result = subprocess.run([python_path, "main.py"], capture_output=True, text=True)
             st.success("Rotina principal executada!")
-            st.text(result.stdout)
+            st.info("[LOG] Saída do main.py:")
+            for linha in result.stdout.splitlines():
+                st.write(linha)
             if result.stderr:
-                st.error(result.stderr)
+                st.error("[LOG] Erro:")
+                for linha in result.stderr.splitlines():
+                    st.write(linha)
 
 elif pagina == "CRC":
     st.title("Pedidos CRC")
