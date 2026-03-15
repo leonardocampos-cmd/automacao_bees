@@ -25,23 +25,37 @@ df_list = [
 ]
 pedidos = pd.concat(df_list, ignore_index=True) if df_list else pd.DataFrame()
 
+if 'log_execucao' not in st.session_state:
+    st.session_state['log_execucao'] = []
+
 if pagina == "Início":
     st.title("Painel de Pedidos Bees - Início")
     st.subheader(f"Pedidos encontrados: {len(pedidos)}")
     st.dataframe(pedidos, use_container_width=True)
+    tratado_path = os.path.join(relatorios_dir, "dados_tratados_cnpj_rj.csv")
+    if os.path.exists(tratado_path):
+        tratado_df = pd.read_csv(tratado_path, dtype=str)
+        st.subheader(f"Dados tratados RJ: {len(tratado_df)}")
+        st.dataframe(tratado_df, use_container_width=True)
+    else:
+        st.info("Arquivo de dados tratados RJ não encontrado.")
     python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
     if st.button("Executar rotina principal (main.py)"):
         with st.spinner("Executando rotina principal..."):
-            st.info("[LOG] Iniciando execução do main.py...")
+            st.session_state['log_execucao'] = []
+            st.session_state['log_execucao'].append("[LOG] Iniciando execução do main.py...")
             result = subprocess.run([python_path, "main.py"], capture_output=True, text=True)
-            st.success("Rotina principal executada!")
-            st.info("[LOG] Saída do main.py:")
+            st.session_state['log_execucao'].append("[LOG] Rotina principal executada!")
             for linha in result.stdout.splitlines():
-                st.write(linha)
+                st.session_state['log_execucao'].append(linha)
             if result.stderr:
-                st.error("[LOG] Erro:")
+                st.session_state['log_execucao'].append("[LOG] Erro:")
                 for linha in result.stderr.splitlines():
-                    st.write(linha)
+                    st.session_state['log_execucao'].append(linha)
+    if st.session_state['log_execucao']:
+        st.info("[LOG] Execução:")
+        for linha in st.session_state['log_execucao']:
+            st.write(linha)
 
 elif pagina == "CRC":
     st.title("Pedidos CRC")
@@ -49,6 +63,25 @@ elif pagina == "CRC":
     pedidos_crc = pedidos[pedidos["Centro de Distribuição"].isin(centros_crc)]
     st.subheader(f"Pedidos CRC: {len(pedidos_crc)}")
     st.dataframe(pedidos_crc, use_container_width=True)
+    tratado_path = os.path.join(relatorios_dir, "dados_tratados_cnpj_rj.csv")
+    if os.path.exists(tratado_path):
+        tratado_df = pd.read_csv(tratado_path, dtype=str)
+        st.subheader(f"Dados tratados RJ: {len(tratado_df)}")
+        st.dataframe(tratado_df, use_container_width=True)
+    else:
+        st.info("Arquivo de dados tratados RJ não encontrado.")
+    python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
+    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+        with st.spinner("Executando cadastro CRC..."):
+            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+            st.success("Cadastro CRC executado!")
+            st.info("[LOG] Saída do abrir_wt_crc.py:")
+            for linha in result.stdout.splitlines():
+                st.write(linha)
+            if result.stderr:
+                st.error("[LOG] Erro:")
+                for linha in result.stderr.splitlines():
+                    st.write(linha)
 
 elif pagina == "SPON":
     st.title("Pedidos SPON")
@@ -56,6 +89,18 @@ elif pagina == "SPON":
     pedidos_spon = pedidos[pedidos["Centro de Distribuição"].isin(centros_spon)]
     st.subheader(f"Pedidos SPON: {len(pedidos_spon)}")
     st.dataframe(pedidos_spon, use_container_width=True)
+    python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
+    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+        with st.spinner("Executando cadastro CRC..."):
+            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+            st.success("Cadastro CRC executado!")
+            st.info("[LOG] Saída do abrir_wt_crc.py:")
+            for linha in result.stdout.splitlines():
+                st.write(linha)
+            if result.stderr:
+                st.error("[LOG] Erro:")
+                for linha in result.stderr.splitlines():
+                    st.write(linha)
 
 elif pagina == "MGON":
     st.title("Pedidos MGON")
@@ -63,6 +108,18 @@ elif pagina == "MGON":
     pedidos_mgon = pedidos[pedidos["Centro de Distribuição"].isin(centros_mgon)]
     st.subheader(f"Pedidos MGON: {len(pedidos_mgon)}")
     st.dataframe(pedidos_mgon, use_container_width=True)
+    python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
+    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+        with st.spinner("Executando cadastro CRC..."):
+            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+            st.success("Cadastro CRC executado!")
+            st.info("[LOG] Saída do abrir_wt_crc.py:")
+            for linha in result.stdout.splitlines():
+                st.write(linha)
+            if result.stderr:
+                st.error("[LOG] Erro:")
+                for linha in result.stderr.splitlines():
+                    st.write(linha)
 
 elif pagina == "Pendências":
     st.title("Pendências Fiscais")
@@ -73,3 +130,15 @@ elif pagina == "Pendências":
         st.dataframe(pendencias_df, use_container_width=True)
     else:
         st.info("Arquivo de pendências fiscais não encontrado.")
+    python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
+    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+        with st.spinner("Executando cadastro CRC..."):
+            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+            st.success("Cadastro CRC executado!")
+            st.info("[LOG] Saída do abrir_wt_crc.py:")
+            for linha in result.stdout.splitlines():
+                st.write(linha)
+            if result.stderr:
+                st.error("[LOG] Erro:")
+                for linha in result.stderr.splitlines():
+                    st.write(linha)

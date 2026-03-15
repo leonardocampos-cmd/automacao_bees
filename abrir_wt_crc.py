@@ -3,6 +3,7 @@ import pyautogui as py
 import time
 import pyscreeze
 pyscreeze.USE_IMAGE_NOT_FOUND_EXCEPTION = False
+import os
 # Configuração de segurança
 py.FAILSAFE = True
 
@@ -12,11 +13,12 @@ def esperar_e_clicar(nome_imagem, mensagem, timeout=30, clicar=True, duplo=False
     clicar: Se True, clica na imagem ao encontrar.
     duplo: Se True, executa um clique duplo.
     """
+    caminho_imagem = os.path.join(os.path.dirname(__file__), 'imagens', nome_imagem)
     inicio = time.time()
-    print(f"Buscando: {nome_imagem}...")
+    print(f"Buscando: {caminho_imagem}...")
     
     while True:
-        posicao = py.locateCenterOnScreen(nome_imagem, confidence=0.7)
+        posicao = py.locateCenterOnScreen(caminho_imagem, confidence=0.7)
         
         if posicao:
             if clicar:
@@ -29,7 +31,7 @@ def esperar_e_clicar(nome_imagem, mensagem, timeout=30, clicar=True, duplo=False
         
         # Verifica se o tempo de espera acabou
         if (time.time() - inicio) > timeout:
-            print(f"Aviso: Tempo esgotado para {nome_imagem}")
+            print(f"Aviso: Tempo esgotado para {caminho_imagem}")
             return False
         
         time.sleep(0.5) # Evita sobrecarregar o processador
@@ -46,15 +48,20 @@ def abrir_sistema():
 
     # esperar_e_clicar('react.png', "Cliquei no React")
     py.sleep(1)
-    sucesso_gerar = esperar_e_clicar('email.png', "Cliquei no React", timeout=10)
-    if not sucesso_gerar:
-        esperar_e_clicar('sair.png', 'Saindo', timeout=10)
-        esperar_e_clicar('email.png', "Cliquei no React", timeout=10)
+    esperar_e_clicar('email.png', "Cliquei no React", timeout=10)
     py.write('leonardocampos@brcomercio.com.br')
     py.press('tab')
     py.write('Rigarr@2026@')
     py.sleep(1)
-    esperar_e_clicar('btn_entrar.png', "Login realizado", timeout=10)
+    sucesso_gerar = esperar_e_clicar('btn_entrar.png', "Login realizado", timeout=10)
+    if not sucesso_gerar:
+        esperar_e_clicar('sair.png', 'Saindo', timeout=10)
+        esperar_e_clicar('email.png', "Cliquei no React", timeout=10)
+        py.write('leonardocampos@brcomercio.com.br')
+        py.press('tab')
+        py.write('Rigarr@2026@')
+        py.sleep(1)
+        esperar_e_clicar('btn_entrar.png', "Login realizado", timeout=10)
     py.sleep(1)
     # 2. Navegação CRC
     esperar_e_clicar('btn_crc.png', "Botão CRC clicado")

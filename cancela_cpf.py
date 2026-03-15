@@ -45,7 +45,7 @@ def cancelar_pedidos(arquivo):
     # --- Itera pelos pedidos ---
     for _, row in arquivo.iterrows():
         pedido = row['Numero Pedido']
-        print(f"🔍 Processando pedido {pedido}...")
+        print(f"Processando pedido {pedido}...")
 
         try:
             driver.get(f'https://one.bees.com/order-management/active-orders/{pedido}')
@@ -56,7 +56,7 @@ def cancelar_pedidos(arquivo):
             ))).text.strip()
             time.sleep(2)  # Pequena pausa para garantir que a página carregou completamente
             if status != "A ser preparado":
-                print(f"⚠️ Pedido {pedido} não está 'A ser preparado'. Status atual: {status}")
+                print(f"Pedido {pedido} não está 'A ser preparado'. Status atual: {status}")
                 continue
 
             # --- Clica em "Recusar pedido" ---
@@ -81,7 +81,7 @@ def cancelar_pedidos(arquivo):
                     motivo_encontrado = True
                     break
             if not motivo_encontrado:
-                print(f"❌ Motivo '{motivo}' não encontrado para o pedido {pedido}")
+                print(f"Motivo '{motivo}' não encontrado para o pedido {pedido}")
                 continue
 
             # Aguarda o combobox fechar
@@ -95,15 +95,15 @@ def cancelar_pedidos(arquivo):
             # --- Clica no botão confirmar ---
             ActionChains(driver).move_to_element(confirmar_btn).click().perform()
 
-            print(f"✅ Pedido {pedido} atualizado com motivo '{motivo}'")
+            print(f"Pedido {pedido} atualizado com motivo '{motivo}'")
 
         except Exception as e:
-            print(f"❌ Erro no pedido {pedido}: {e}")
+            print(f"Erro no pedido {pedido}: {e}")
             traceback.print_exc()
 
     # --- Fecha navegador ao final ---
     driver.quit()
-    print("✅ Todos os pedidos processados.")
+    print("Todos os pedidos processados.")
 
 if __name__ == "__main__":
     arquivo = preparar_dados()
