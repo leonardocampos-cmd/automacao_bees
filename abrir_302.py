@@ -1,6 +1,8 @@
 #CADASTRAR RJ
 import pyautogui as py
 import time
+import os
+import pandas as pd
 from winotify import Notification, audio
 import pyscreeze
 pyscreeze.USE_IMAGE_NOT_FOUND_EXCEPTION = False
@@ -124,14 +126,18 @@ def executar_acao(tipo_acao, valor=None, field_name=None):
 
     
 def abrir_rotina():
-    esperar_e_clicar('rotina_302.png','Rotina 302, Iniciada',timeout=10)
+    rotina_img = os.path.join("imagens", "rotina_302.png")
+    esperar_e_clicar(rotina_img,'Rotina 302, Iniciada',timeout=10)
     py.sleep(2)
-    esperar_e_clicar('novo_cadastro.png','Novo Cadastro, Iniciada',timeout=20)
+    novo_cadastro_img = os.path.join("imagens", "novo_cadastro.png")
+    esperar_e_clicar(novo_cadastro_img,'Novo Cadastro, Iniciada',timeout=20)
     py.sleep(2)
-    sucesso_gerar = esperar_e_clicar('check_marcado.png', 'Check Já Marcado',timeout=5)
+    check_marcado_img = os.path.join("imagens", "check_marcado.png")
+    sucesso_gerar = esperar_e_clicar(check_marcado_img, 'Check Já Marcado',timeout=5)
     print("Marcado")
     if not sucesso_gerar:
-        esperar_e_clicar('check.png', 'Check Marcado',timeout=5)
+        check_img = os.path.join("imagens", "check.png")
+        esperar_e_clicar(check_img, 'Check Marcado',timeout=5)
         print("Não apareceu, seguindo outra lógica...")
     #-------- INÍCIO DA EXECUÇÃO ----------
 

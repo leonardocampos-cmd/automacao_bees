@@ -71,17 +71,31 @@ elif pagina == "CRC":
     else:
         st.info("Arquivo de dados tratados RJ não encontrado.")
     python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
-    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
-        with st.spinner("Executando cadastro CRC..."):
-            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
-            st.success("Cadastro CRC executado!")
-            st.info("[LOG] Saída do abrir_wt_crc.py:")
-            for linha in result.stdout.splitlines():
-                st.write(linha)
-            if result.stderr:
-                st.error("[LOG] Erro:")
-                for linha in result.stderr.splitlines():
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+            with st.spinner("Executando cadastro CRC..."):
+                result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+                st.success("Cadastro CRC executado!")
+                st.info("[LOG] Saída do abrir_wt_crc.py:")
+                for linha in result.stdout.splitlines():
                     st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
+    with col2:
+        if st.button("Executar cadastro RJ (abrir_302.py)"):
+            with st.spinner("Executando cadastro RJ..."):
+                result = subprocess.run([python_path, "abrir_302.py"], capture_output=True, text=True)
+                st.success("Cadastro RJ executado!")
+                st.info("[LOG] Saída do abrir_302.py:")
+                for linha in result.stdout.splitlines():
+                    st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
 
 elif pagina == "SPON":
     st.title("Pedidos SPON")
@@ -90,17 +104,31 @@ elif pagina == "SPON":
     st.subheader(f"Pedidos SPON: {len(pedidos_spon)}")
     st.dataframe(pedidos_spon, use_container_width=True)
     python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
-    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
-        with st.spinner("Executando cadastro CRC..."):
-            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
-            st.success("Cadastro CRC executado!")
-            st.info("[LOG] Saída do abrir_wt_crc.py:")
-            for linha in result.stdout.splitlines():
-                st.write(linha)
-            if result.stderr:
-                st.error("[LOG] Erro:")
-                for linha in result.stderr.splitlines():
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+            with st.spinner("Executando cadastro CRC..."):
+                result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+                st.success("Cadastro CRC executado!")
+                st.info("[LOG] Saída do abrir_wt_crc.py:")
+                for linha in result.stdout.splitlines():
                     st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
+    with col2:
+        if st.button("Executar cadastro RJ (abrir_302.py)"):
+            with st.spinner("Executando cadastro RJ..."):
+                result = subprocess.run([python_path, "abrir_302.py"], capture_output=True, text=True)
+                st.success("Cadastro RJ executado!")
+                st.info("[LOG] Saída do abrir_302.py:")
+                for linha in result.stdout.splitlines():
+                    st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
 
 elif pagina == "MGON":
     st.title("Pedidos MGON")
@@ -109,17 +137,31 @@ elif pagina == "MGON":
     st.subheader(f"Pedidos MGON: {len(pedidos_mgon)}")
     st.dataframe(pedidos_mgon, use_container_width=True)
     python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
-    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
-        with st.spinner("Executando cadastro CRC..."):
-            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
-            st.success("Cadastro CRC executado!")
-            st.info("[LOG] Saída do abrir_wt_crc.py:")
-            for linha in result.stdout.splitlines():
-                st.write(linha)
-            if result.stderr:
-                st.error("[LOG] Erro:")
-                for linha in result.stderr.splitlines():
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+            with st.spinner("Executando cadastro CRC..."):
+                result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+                st.success("Cadastro CRC executado!")
+                st.info("[LOG] Saída do abrir_wt_crc.py:")
+                for linha in result.stdout.splitlines():
                     st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
+    with col2:
+        if st.button("Executar cadastro RJ (abrir_302.py)"):
+            with st.spinner("Executando cadastro RJ..."):
+                result = subprocess.run([python_path, "abrir_302.py"], capture_output=True, text=True)
+                st.success("Cadastro RJ executado!")
+                st.info("[LOG] Saída do abrir_302.py:")
+                for linha in result.stdout.splitlines():
+                    st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
 
 elif pagina == "Pendências":
     st.title("Pendências Fiscais")
@@ -131,14 +173,28 @@ elif pagina == "Pendências":
     else:
         st.info("Arquivo de pendências fiscais não encontrado.")
     python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
-    if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
-        with st.spinner("Executando cadastro CRC..."):
-            result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
-            st.success("Cadastro CRC executado!")
-            st.info("[LOG] Saída do abrir_wt_crc.py:")
-            for linha in result.stdout.splitlines():
-                st.write(linha)
-            if result.stderr:
-                st.error("[LOG] Erro:")
-                for linha in result.stderr.splitlines():
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Executar cadastro CRC (abrir_wt_crc.py)"):
+            with st.spinner("Executando cadastro CRC..."):
+                result = subprocess.run([python_path, "abrir_wt_crc.py"], capture_output=True, text=True)
+                st.success("Cadastro CRC executado!")
+                st.info("[LOG] Saída do abrir_wt_crc.py:")
+                for linha in result.stdout.splitlines():
                     st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
+    with col2:
+        if st.button("Executar cadastro RJ (abrir_302.py)"):
+            with st.spinner("Executando cadastro RJ..."):
+                result = subprocess.run([python_path, "abrir_302.py"], capture_output=True, text=True)
+                st.success("Cadastro RJ executado!")
+                st.info("[LOG] Saída do abrir_302.py:")
+                for linha in result.stdout.splitlines():
+                    st.write(linha)
+                if result.stderr:
+                    st.error("[LOG] Erro:")
+                    for linha in result.stderr.splitlines():
+                        st.write(linha)
