@@ -176,4 +176,5 @@ def tratar_cnpj_rj(base_dir: str | None = None):
         res_endereco = arquivo_cnpjs["Endereço de Entrega"].apply(dividir_endereco)
         arquivo_cnpjs[cols] = pd.DataFrame(res_endereco.tolist(), index=arquivo_cnpjs.index)
         arquivo_cnpjs.drop_duplicates('CNPJ', inplace=True)
-        arquivo_cnpjs.to_csv(os.path.join(relatorios_dir, "dados_tratados_cnpj_rj.csv"), index=False, encoding='utf-8')   
+        arquivo_cnpjs.to_csv(os.path.join(relatorios_dir, "dados_tratados_cnpj_rj.csv"), index=False, encoding='utf-8')
+    return arquivo_cnpjs

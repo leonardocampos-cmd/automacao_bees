@@ -60,6 +60,55 @@ A rotina é executada em 4 passos sequenciais:
 - Trata endereços, telefones, emails
 - Salva dados finais para importação
 
+## Cancelamento de Pendências Fiscais
+
+O projeto possui uma rotina para identificar e cancelar pendências fiscais de clientes/pedidos. Os dados são processados e salvos em `relatorios/pendencias_fiscais.csv`.
+
+No painel Streamlit, há uma página específica chamada **Pendências**, onde é possível visualizar todas as pendências fiscais encontradas.
+
+### Lógica
+
+- Identifica pedidos/clientes com pendências fiscais
+- Cancela ou sinaliza conforme regras do negócio
+- Salva os resultados em CSV para consulta
+- Exibe no painel para acompanhamento
+
+### Integração no fluxo principal
+
+O passo de cancelamento de pendências fiscais pode ser chamado no `main.py` após o tratamento de dados RJ, garantindo que todas as pendências sejam processadas e registradas.
+
+## Painel Interativo (Streamlit)
+
+O projeto possui um painel web interativo para visualização dos pedidos, dividido em páginas:
+
+- **Início**: Mostra todos os pedidos coletados.
+- **CRC**: Filtra pedidos dos centros de distribuição RIGARRRJCAPITAL, CASTAS RJ, RIGARRESCAPITAL, CASTAES.
+- **SPON**: Filtra pedidos dos centros RIGARRSPCAPITAL, CASTAS SP.
+- **MGON**: Filtra pedidos dos centros RIGARRMGCAPITAL, CASTAS MG.
+
+O painel é construído com Streamlit e lê os arquivos CSV gerados pela rotina principal. Permite navegação fácil entre as páginas e visualização dos dados em tabelas.
+
+### Lógica do Projeto
+
+1. **Coleta de pedidos**: Automatiza login e coleta dos pedidos ativos de cada filial, salvando em CSV.
+2. **Cancelamento de pedidos**: Identifica e cancela pedidos com CPF inválido.
+3. **Consulta de CNPJ**: Consulta dados de CNPJ via API, salvando resultados detalhados.
+4. **Tratamento de dados RJ**: Filtra e prepara dados para importação, cruzando com tabelas Oracle.
+5. **Painel Streamlit**: Permite visualizar todos os dados, com filtros por centro de distribuição.
+
+### Como executar o painel
+
+1. Ative o ambiente virtual:
+   ```
+   & "c:/Users/LeonardoCampos/Meu Drive/automacao_bees/.venv/Scripts/Activate.ps1"
+   ```
+2. Execute:
+   ```
+   streamlit run painel.py
+   ```
+
+O painel será aberto no navegador, mostrando as páginas e filtros conforme a lógica acima.
+
 ## Dependências
 
 - Python 3.11+

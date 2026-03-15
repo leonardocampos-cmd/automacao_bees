@@ -66,6 +66,15 @@ def main():
         logging.error(f"Erro no tratamento de dados CNPJ RJ: {e}")
         return
 
+    # Passo 5: Cancelar Pendências Fiscais
+    logging.info("Passo 5: Cancelando pendências fiscais...")
+    try:
+        result = subprocess.run([sys.executable, 'cancela_pendencia_fiscal.py'], check=True)
+        logging.info("Cancelamento de pendências fiscais concluído.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Erro no cancelamento de pendências fiscais: {e}")
+        return
+
     logging.info("Rotina principal concluída.")
 
 if __name__ == "__main__":
