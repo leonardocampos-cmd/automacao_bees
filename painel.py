@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
+import subprocess
+import sys
 
 st.set_page_config(page_title="Painel Bees", layout="wide")
 st.title("Painel de Pedidos Bees")
@@ -27,6 +29,14 @@ if pagina == "Início":
     st.title("Painel de Pedidos Bees - Início")
     st.subheader(f"Pedidos encontrados: {len(pedidos)}")
     st.dataframe(pedidos, use_container_width=True)
+    python_path = os.path.join(os.path.dirname(sys.executable), "python.exe")
+    if st.button("Executar rotina principal (main.py)"):
+        with st.spinner("Executando rotina principal..."):
+            result = subprocess.run([python_path, "main.py"], capture_output=True, text=True)
+            st.success("Rotina principal executada!")
+            st.text(result.stdout)
+            if result.stderr:
+                st.error(result.stderr)
 
 elif pagina == "CRC":
     st.title("Pedidos CRC")
