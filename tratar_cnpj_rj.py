@@ -18,9 +18,9 @@ def tratar_cnpj_rj(base_dir: str | None = None):
     if base_dir is None:
         base_dir = os.path.dirname(__file__)
 
-    # Diretórios padrão
     relatorios_dir = os.path.join(base_dir, "relatorios")
-    arquivo_cnpjs = os.path.join(relatorios_dir, "resultados_consulta_cnpj_api.csv")
+    arquivo_entrada = os.path.join(relatorios_dir, "resultados_consulta_cnpj_api.csv")
+    arquivo_saida = os.path.join(relatorios_dir, "dados_tratados_cnpj_crc.csv")
 
     user = "vpn"
     password = "vpn2320vpn"
@@ -53,7 +53,7 @@ def tratar_cnpj_rj(base_dir: str | None = None):
     )
 
     arquivo_cnpjs = pd.read_csv(
-        arquivo_cnpjs,
+        arquivo_entrada,
         sep=",",
         encoding="utf-8",
         dtype=str,
@@ -70,15 +70,18 @@ def tratar_cnpj_rj(base_dir: str | None = None):
     ]
     arquivo_pedidos = pd.concat(df_list, ignore_index=True)
 
-    arquivo_cnpjs.drop(columns=[
+    # Remover colunas apenas se existirem
+    cols_remover = [
         'Arquivo', 'Capital Social', 'Natureza Jurídica', 'Data de Fundação',
         'Data de Status', 'Razão de Status', 'Simples Nacional Desde',
         'SIMEI Desde', 'Inscrição Estadual Estado', 'Inscrição Estadual Tipo',
         'Inscrição Estadual Data de Status'
-    ], inplace=True)
+    ]
+    cols_remover_existentes = [c for c in cols_remover if c in arquivo_cnpjs.columns]
+    if cols_remover_existentes:
+        arquivo_cnpjs.drop(columns=cols_remover_existentes, inplace=True)
 
     arquivo_cnpjs['Nome Fantasia'] = arquivo_cnpjs['Nome Fantasia'].fillna(arquivo_cnpjs['Nome'])
-
     arquivo_cnpjs = arquivo_cnpjs[arquivo_cnpjs['Status'] == 'Ativa']
 
     cidades_interior = [
@@ -176,5 +179,5 @@ def tratar_cnpj_rj(base_dir: str | None = None):
         res_endereco = arquivo_cnpjs["Endereço de Entrega"].apply(dividir_endereco)
         arquivo_cnpjs[cols] = pd.DataFrame(res_endereco.tolist(), index=arquivo_cnpjs.index)
         arquivo_cnpjs.drop_duplicates('CNPJ', inplace=True)
-        arquivo_cnpjs.to_csv(os.path.join(relatorios_dir, "dados_tratados_cnpj_rj.csv"), index=False, encoding='utf-8')
+        arquivo_cnpjs.to_csv(arquivo_saida, index=False, encoding='utf-8')
     return arquivo_cnpjs

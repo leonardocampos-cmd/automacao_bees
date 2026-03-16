@@ -85,11 +85,11 @@ elif pagina == "CRC":
                     for linha in result.stderr.splitlines():
                         st.write(linha)
     with col2:
-        if st.button("Executar cadastro RJ (abrir_302.py)"):
+        if st.button("Executar cadastro RJ (abrir_302_crc.py)"):
             with st.spinner("Executando cadastro RJ..."):
-                result = subprocess.run([python_path, "abrir_302.py"], capture_output=True, text=True)
+                result = subprocess.run([python_path, "abrir_302_crc.py"], capture_output=True, text=True)
                 st.success("Cadastro RJ executado!")
-                st.info("[LOG] Saída do abrir_302.py:")
+                st.info("[LOG] Saída do abrir_302_crc.py:")
                 for linha in result.stdout.splitlines():
                     st.write(linha)
                 if result.stderr:

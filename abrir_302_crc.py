@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from winotify import Notification, audio
 import pyscreeze
+
 pyscreeze.USE_IMAGE_NOT_FOUND_EXCEPTION = False
 # Configuração de segurança
 py.FAILSAFE = True
@@ -126,14 +127,26 @@ def executar_acao(tipo_acao, valor=None, field_name=None):
 
     
 def abrir_rotina():
+    tamanho = py.size()
+    print(tamanho)
+    #py.moveTo(tamanho.width - 10, tamanho.height - 1, duration=10)
+    py.sleep(5)
+    py.click(tamanho.width - 10, tamanho.height - 10)
+    py.sleep(5)
+    sistema_aberto = os.path.join("imagens", "wt_aberto.png")
+    esperar_e_clicar(sistema_aberto,'Sistema Aberto',timeout=10)
+    py.sleep(2)
     rotina_img = os.path.join("imagens", "rotina_302.png")
     esperar_e_clicar(rotina_img,'Rotina 302, Iniciada',timeout=10)
+    py.sleep(3)
+    rotina_aberto_img = os.path.join("imagens", "302_aberta.png")
+    esperar_e_clicar(rotina_aberto_img,'Rotina 302, Aberta',timeout=10, clicar=False)
     py.sleep(2)
     novo_cadastro_img = os.path.join("imagens", "novo_cadastro.png")
     esperar_e_clicar(novo_cadastro_img,'Novo Cadastro, Iniciada',timeout=20)
     py.sleep(2)
     check_marcado_img = os.path.join("imagens", "check_marcado.png")
-    sucesso_gerar = esperar_e_clicar(check_marcado_img, 'Check Já Marcado',timeout=5)
+    sucesso_gerar = esperar_e_clicar(check_marcado_img, 'Check Já Marcado',timeout=5, clicar=False)
     print("Marcado")
     if not sucesso_gerar:
         check_img = os.path.join("imagens", "check.png")
@@ -144,10 +157,10 @@ def abrir_rotina():
 if __name__ == "__main__":
     try:
         print("Você tem 5 segundos para abrir o sistema de cadastro...")
-        time.sleep(5)
+        py.sleep(5)
         abrir_rotina()
         # Carrega o arquivo CSV de CNPJs
-        arquivo_csv = "relatorios/Pedidos_A_Preparar_Rigarr.csv"
+        arquivo_csv = "relatorios/dados_tratados_cnpj_crc.csv"
         arquivo_cnpjs = pd.read_csv(arquivo_csv, dtype=str)
         for idx, linha in arquivo_cnpjs.iterrows():
             print(f"Processando cadastro {idx + 1}/{len(arquivo_cnpjs)}...")
@@ -175,19 +188,3 @@ if __name__ == "__main__":
         )
         notificacao.set_audio(audio.LoopingAlarm, loop=False)
         notificacao.show()
-        import pyttsx3
-
-        # Inicializa o mecanismo de voz
-        engine = pyttsx3.init()
-
-        # Ajustes opcionais
-        engine.setProperty('rate', 180)     # velocidade da fala
-        engine.setProperty('volume', 1.0)   # volume (0.0 a 1.0)
-
-        # Frase a ser falada
-        frase = "Oi! Eu sou sua assistente em Python."
-
-        # Reproduz o áudio
-        engine.say(frase)
-        engine.runAndWait()
-
