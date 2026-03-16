@@ -74,7 +74,7 @@ def abrir_sistema():
     py.sleep(5)
     # 4. Abertura do Sistema WT
 
-    sucesso_gerar = esperar_e_clicar('icone_wt_crc.png', "Ícone WT encontrado", timeout=10, duplo=True)
+    sucesso_gerar = esperar_e_clicar('icone_wt_crc.png', "Ícone WT encontrado", timeout=20, duplo=True)
     py.sleep(3)
     sucesso_gerar = esperar_e_clicar('btn_executar.png', "Executando WT")
     py.sleep(2)

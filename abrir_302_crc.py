@@ -144,9 +144,9 @@ def abrir_rotina():
     py.sleep(2)
     novo_cadastro_img = os.path.join("imagens", "novo_cadastro.png")
     esperar_e_clicar(novo_cadastro_img,'Novo Cadastro, Iniciada',timeout=20)
-    py.sleep(2)
+    py.sleep(5)
     check_marcado_img = os.path.join("imagens", "check_marcado.png")
-    sucesso_gerar = esperar_e_clicar(check_marcado_img, 'Check Já Marcado',timeout=5, clicar=False)
+    sucesso_gerar = esperar_e_clicar(check_marcado_img, 'Check Já Marcado',timeout=10, clicar=False)
     print("Marcado")
     if not sucesso_gerar:
         check_img = os.path.join("imagens", "check.png")
