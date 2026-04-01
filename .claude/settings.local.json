@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"G:\\\\Meu Drive\\\\automacao_bees\"/*.py)",
+      "Bash(ls \"G:/Meu Drive/automacao_bees/\"*.py)",
+      "Bash(\"g:/Meu Drive/automacao_bees/.venv/Scripts/python.exe\" \"g:/Meu Drive/automacao_bees/main.py\")",
+      "Bash(schtasks /query /fo LIST /v /tn BEES*)",
+      "Bash(schtasks /query /fo LIST /v)",
+      "Bash(schtasks /query /fo CSV /v)",
+      "Bash(powershell -Command \"Get-ScheduledTask | Where-Object {$_.TaskName -match 'BEES|bees|automac'} | Format-List *\")",
+      "Bash(powershell -Command \"Get-ScheduledTask | Where-Object TaskName -match 'BEES|bees|automac' | Format-List *\")",
+      "Bash(powershell -Command \"Get-ScheduledTask -TaskName 'BEES Automacao' | Get-ScheduledTaskInfo | Format-List *; \\(Get-ScheduledTask -TaskName 'BEES Automacao'\\).Actions | Format-List *; \\(Get-ScheduledTask -TaskName 'BEES Automacao'\\).Triggers | Format-List *\")",
+      "Bash(powershell -Command \"\\(Get-ScheduledTask -TaskName 'BEES Automacao'\\).Triggers[0].Repetition | Format-List *\")",
+      "Bash(powershell -Command \"\n$action = New-ScheduledTaskAction -Execute 'G:\\\\Meu Drive\\\\automacao_bees\\\\.venv\\\\Scripts\\\\python.exe' -Argument 'main.py' -WorkingDirectory 'G:\\\\Meu Drive\\\\automacao_bees'\nSet-ScheduledTask -TaskName 'BEES Automacao' -Action $action\n\")",
+      "Bash(powershell -Command \"Set-ScheduledTask -TaskName 'BEES Automacao' -Action \\(New-ScheduledTaskAction -Execute 'G:\\\\Meu Drive\\\\automacao_bees\\\\.venv\\\\Scripts\\\\python.exe' -Argument 'main.py' -WorkingDirectory 'G:\\\\Meu Drive\\\\automacao_bees'\\)\")"
+    ]
+  }
+}
