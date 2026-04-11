@@ -16,7 +16,7 @@ def main():
 
     try:
         step("Coletando Pedidos BEES")
-        subprocess.run([sys.executable, "coletar_pedidos.py"], check=True)
+        subprocess.run([sys.executable, "coletar_pedidos.py"], check=True)  
         step("Consulta CNPJ")
         subprocess.run([sys.executable, "consulta_cnpj.py"], check=True)
         step("Cancelar CPF")
