@@ -116,7 +116,7 @@ else:
         except TimeoutException as e:
             print(f"❌ Erro no pedido {pedido}: {e}")
             traceback.print_exc()
-
+            time.sleep(5)
     # --- Fecha navegador ao final ---
     driver.quit()
 

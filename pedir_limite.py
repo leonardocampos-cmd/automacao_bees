@@ -103,7 +103,7 @@ for filial in FILIAIS:
         engine = create_engine(f'oracle+oracledb://{DB_USER}:{DB_PASSWORD}@{dsn}')
 
         tabela_cliente = pd.read_sql(f"""
-            SELECT codcli, cgcent, BLOQUEIO, LIMCRED
+            SELECT codcli,cliente, cgcent, BLOQUEIO, LIMCRED
             FROM {schema}.PCCLIENT
         """, con=engine, dtype=str)
 
@@ -117,7 +117,7 @@ for filial in FILIAIS:
             SELECT 
                 codcli, 
                 SUM(valor) AS valor
-            FROM {schema}.PCPREST
+                FROM {schema}.PCPREST
             WHERE vpago IS NULL OR vpago = '0'
             GROUP BY codcli
         """, con=engine, dtype=str)
