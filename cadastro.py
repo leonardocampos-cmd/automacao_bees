@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
 load_dotenv()
-oracledb.init_oracle_client(lib_dir=r"C:\instantclient")
+oracledb.init_oracle_client(lib_dir=os.getenv("ORACLE_CLIENT_DIR", "/opt/instantclient"))
 
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")

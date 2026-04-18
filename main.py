@@ -14,11 +14,16 @@ def main():
     print(f" BEES - {inicio.strftime('%d/%m/%Y %H:%M')}")
     print(f"{'='*50}")
 
+    import db
+    db.criar_tabelas()
+
     try:
         step("Coletando Pedidos BEES")
         subprocess.run([sys.executable, "coletar_pedidos.py"], check=True)  
         step("Consulta CNPJ")
         subprocess.run([sys.executable, "consulta_cnpj.py"], check=True)
+        step("Consulta Cod Cliente (PCCLIENT)")
+        subprocess.run([sys.executable, "consulta_codcli.py"], check=True)
         step("Cancelar CPF")
         subprocess.run([sys.executable, "cancela_cpf.py"], check=True)
         step("Cancela CNPJ Invalido")

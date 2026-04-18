@@ -1,0 +1,109 @@
+1<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central de Pedidos — BEES</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-logo">B</div>
+      <span class="navbar-title">BEES <span>Central de Pedidos</span></span>
+    </div>
+    <div class="navbar-meta" id="scraper-status-bar">
+      <div class="dot" id="status-dot"></div>
+      <span id="status-texto">Iniciando...</span>
+      &nbsp;|&nbsp;
+      Atualizado às <strong id="ultimo-update">—</strong>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- CARDS DE RESUMO -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total de Pedidos</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">Pedidos ativos coletados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Valor Total</div>
+        <div class="stat-value" id="stat-valor" style="font-size:22px">—</div>
+        <div class="stat-sub">Soma de todos os pedidos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Rigarr</div>
+        <div class="stat-value" id="stat-rigarr">—</div>
+        <div class="stat-sub">Pedidos da filial Rigarr</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Castas</div>
+        <div class="stat-value" id="stat-castas">—</div>
+        <div class="stat-sub">Pedidos da filial Castas</div>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="toolbar">
+      <span class="toolbar-title">Pedidos Coletados</span>
+      <input class="search-box" id="busca" type="text" placeholder="Buscar por cliente, número, documento…">
+      <select class="filter-select" id="filtro-filial">
+        <option value="">Todas as filiais</option>
+        <option value="Rigarr">Rigarr</option>
+        <option value="Castas">Castas</option>
+      </select>
+      <button class="btn-refresh" onclick="carregarTudo()">↻ Atualizar</button>
+    </div>
+
+    <div class="table-wrap">
+
+      <!-- Loading -->
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        Carregando pedidos…
+      </div>
+
+      <!-- Tabela -->
+      <div id="table-container" style="display:none">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nº Pedido</th>
+                <th>Cliente</th>
+                <th>Documento</th>
+                <th>Centro de Dist.</th>
+                <th>Data Entrega</th>
+                <th>Pagamento</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-titulo">Pedido</h2>
+        <button class="btn-close" onclick="fecharModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

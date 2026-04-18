@@ -1,4 +1,5 @@
 #COLETAR OS DADOS
+import os
 from selenium import webdriver
 import pandas as pd
 from selenium.webdriver.common.by import By
@@ -6,14 +7,41 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import time
-import os
-import re
 import logging
 
 url = "https://one.bees.com/order-management/active-orders"
 
-def login(driver, wait, email, senha):  
-    """Realiza o login no site do Bees."""
+_COL_MAP = {
+    'Numero Pedido':          'numero_pedido',
+    'Data Pedido':            'data_pedido',
+    'Centro de Distribuição': 'centro_distribuicao',
+    'Status':                 'status',
+    'Forma de Pagamento':     'forma_pagamento',
+    'Data Entrega':           'data_entrega',
+    'Responsavel':            'responsavel',
+    'Total Pedido':           'total_pedido',
+    'Documento':              'documento',
+    'IE':                     'ie',
+    'Nome Comercial':         'nome_comercial',
+    'Endereço de Entrega':    'endereco_entrega',
+    'Cidade/UF':              'cidade_uf',
+    'CEP':                    'cep',
+    'Coordenadas':            'coordenadas',
+    'ID do negócio':          'id_negocio',
+    'ID da conta do cliente': 'id_conta_cliente',
+    'SKU':                    'sku',
+    'Preço':                  'preco',
+    'Quantidade Pedida':      'quantidade_pedida',
+    'Nome do Produto':        'nome_produto',
+    'Quantidade Preparar':    'quantidade_preparar',
+    'Telefone 1':             'telefone_1',
+    'Telefone 2':             'telefone_2',
+    'Email 1':                'email_1',
+    'Email 2':                'email_2',
+}
+
+
+def login(driver, wait, email, senha):
     logging.info("Tentando realizar o login...")
     driver.get(url)
     campo_email = wait.until(EC.element_to_be_clickable(('id', 'signInName')))
@@ -53,12 +81,11 @@ def coletar_dados_pedidos(driver, wait):
                 })
             except IndexError:
                 continue
-    except Exception as e:
+    except Exception:
         pass
     return pd.DataFrame(order_data)
 
 def navegar_paginas(driver, wait):
-    """Navega por todas as páginas de pedidos e coleta os dados."""
     logging.info("Navegando pelas páginas de pedidos...")
     page_number = 1
     df_total = pd.DataFrame()
@@ -69,7 +96,6 @@ def navegar_paginas(driver, wait):
             df_total = pd.concat([df_total, df], ignore_index=True)
             page_xpath = f'//li[@title="page {page_number}"]'
             try:
-                # Verifica se o botão de próxima página está desabilitado (única página)
                 next_page_buttons = driver.find_elements(By.XPATH, '//a[@aria-label="go to next page"]')
                 if next_page_buttons and next_page_buttons[0].get_attribute("aria-disabled") == "true":
                     logging.info("Botão de próxima página desabilitado. Apenas uma página de resultados.")
@@ -85,10 +111,10 @@ def navegar_paginas(driver, wait):
                     EC.presence_of_element_located((By.XPATH, '//tbody[@role="rowgroup"]'))
                 )
                 page_number += 1
-                time.sleep(2)   
+                time.sleep(2)
 
-            except Exception as e:
-                logging.info(f"Não há mais páginas ou o botão de navegação.")
+            except Exception:
+                logging.info("Não há mais páginas ou o botão de navegação.")
                 break
 
         except Exception as e:
@@ -112,12 +138,9 @@ def coletar_detalhes(driver, wait, df_pedidos_ativos, pedidos_existentes, filial
             try:
                 driver.get(f'https://one.bees.com/order-management/active-orders/{order_str}')
                 wait.until(EC.presence_of_element_located((By.XPATH, "//table//tr")))
-                time.sleep(3) 
+                time.sleep(3)
 
-                # --- FUNÇÕES AUXILIARES DE CAPTURA ---
-                
                 def get_p_texts_by_label(label_name):
-                    """Pega todos os parágrafos de valor dentro de uma div c-jJgXmn baseado no título"""
                     try:
                         xpath = f"//p[contains(text(), '{label_name}')]/parent::div/p"
                         elements = driver.find_elements(By.XPATH, xpath)
@@ -125,36 +148,28 @@ def coletar_detalhes(driver, wait, df_pedidos_ativos, pedidos_existentes, filial
                     except: return []
 
                 def capturar_valor_pelo_label(label_texto):
-                    """Pega o parágrafo imediatamente após o título (sibling)"""
                     try:
                         xpath = f"//p[contains(text(), '{label_texto}')]/following-sibling::p"
                         return driver.find_element(By.XPATH, xpath).text.strip()
                     except: return None
 
-                # --- EXTRAÇÃO DOS DADOS DO CLIENTE E GERAIS ---
-
-                # 1. IDs e Pagamento
                 forma_pagamento = capturar_valor_pelo_label("pagamento") or row_lista.get('Forma de Pagamento')
                 id_negocio = capturar_valor_pelo_label("ID do negócio")
                 id_conta = capturar_valor_pelo_label("ID da conta do cliente")
 
-                # 2. Documento (Tax ID) e Inscrição Estadual
                 tax_info = get_p_texts_by_label("Tax ID")
                 documento = next((s.strip() for s in tax_info if "CPF" in s or "CNPJ" in s), None)
                 ie = next((s.replace("INSCRICAO_ESTADUAL: ", "").strip() for s in tax_info if "INSCRICAO" in s), "ISENTO")
 
-                # 3. Nome Comercial
                 nome_comercial_lista = get_p_texts_by_label("Nome comercial")
                 nome_comercial = nome_comercial_lista[0] if nome_comercial_lista else row_lista.get('Nome Comercial')
 
-                # 4. Endereço de Entrega (Estrutura de 4 linhas)
                 end_lista = get_p_texts_by_label("Endereço de entrega")
                 endereco_rua = end_lista[0] if len(end_lista) > 0 else "Não capturado"
                 cidade_uf = end_lista[1] if len(end_lista) > 1 else ""
                 cep = end_lista[2] if len(end_lista) > 2 else ""
                 coords = end_lista[3] if len(end_lista) > 3 else ""
 
-                # 5. Contatos (Telefones e Emails)
                 try:
                     xpath_tels = "//p[contains(text(), 'telefone')]/parent::div/p[contains(@class, 'weight-normal')]"
                     lista_telefones = [e.text.strip() for e in driver.find_elements(By.XPATH, xpath_tels)]
@@ -168,16 +183,13 @@ def coletar_detalhes(driver, wait, df_pedidos_ativos, pedidos_existentes, filial
                 email1 = lista_emails[0] if len(lista_emails) > 0 else row_lista.get('Email 1')
                 email2 = lista_emails[1] if len(lista_emails) > 1 else row_lista.get('Email 2')
 
-                # 6. Status e Centro de Distribuição
                 try:
                     status = driver.find_element(By.XPATH, "//*[@data-testid='order-details-status']//*[contains(@class, 'weight-normal')]").text.strip()
                 except: status = row_lista.get('Status')
-                
+
                 try:
                     cd = driver.find_element(By.XPATH, "//*[@data-testid='order-details-ddc-info']//*[contains(@class, 'weight-normal')]").text.strip()
                 except: cd = row_lista.get('Centro de Distribuição')
-
-                # --- ITENS DO PEDIDO ---
 
                 rows = driver.find_elements(By.XPATH, "//table//tr[td]")
                 for row in rows:
@@ -185,7 +197,7 @@ def coletar_detalhes(driver, wait, df_pedidos_ativos, pedidos_existentes, filial
                         nome_prod = row.find_element(By.XPATH, ".//*[contains(@data-testid, 'product_name')]").text.strip()
                         sku_item = row.find_element(By.XPATH, ".//*[contains(@data-testid, 'product_sku')]").text.strip()
                         preco_un = row.find_element(By.XPATH, ".//*[contains(@data-testid, 'product_price')]").text.strip()
-                        
+
                         cols = row.find_elements(By.TAG_NAME, "td")
                         qtd_pedida = cols[1].text.strip()
                         qtd_prepara = cols[2].text.strip()
@@ -226,207 +238,83 @@ def coletar_detalhes(driver, wait, df_pedidos_ativos, pedidos_existentes, filial
                 retries += 1
                 logging.error(f"Erro no pedido {order_str}: {e}")
                 time.sleep(2)
-    
+
     return pd.DataFrame(detalhes)
 
+
 if __name__ == "__main__":
+    import db
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    emails = ['leonardo.campos@rigarr.com.br','cadastro@rigarr.com.br']
-    senhas = ['Br@sil32aaaaaaa','Rigarrdistribuidora@2024']
-    filiais = ['Rigarr','Castas'] 
-    max_retries_main = 3
-    
-    expected_cols = [
-        'Numero Pedido', 'Data Pedido', 'Centro de Distribuição', 'Status',
-        'Forma de Pagamento', 'Data Entrega', 'Responsavel', 'Total Pedido',
-        'Documento', 'IE', 'Nome Comercial', 'Endereço de Entrega',
-        'Cidade/UF', 'CEP', 'Coordenadas', 'ID do negócio', 'ID da conta do cliente',
-        'SKU', 'Preço', 'Quantidade Pedida', 'Nome do Produto', 'Quantidade Preparar'
+
+    db.criar_tabelas()
+
+    emails = [
+        os.getenv('EMAIL_RIGARR', 'leonardo.campos@rigarr.com.br'),
+        os.getenv('EMAIL_CASTAS', 'cadastro@rigarr.com.br'),
     ]
-    for i in range(1, 3):  
-        expected_cols.append(f'Telefone {i}')
-    for i in range(1, 3):  
-        expected_cols.append(f'Email {i}')
+    senhas = [
+        os.getenv('SENHA_RIGARR', 'Br@sil32aaaaaaa'),
+        os.getenv('SENHA_CASTAS', 'Rigarrdistribuidora@2024'),
+    ]
+    filiais = ['Rigarr', 'Castas']
+    max_retries_main = 3
 
     for email, senha, filial in zip(emails, senhas, filiais):
         retries = 0
         while retries < max_retries_main:
             driver = None
             try:
-                caminho = r'G:\Drives compartilhados\Relatorios BEES'
-                arquivo_csv = os.path.join(caminho,f'Pedidos_A_Preparar_{filial}.csv')
                 logging.info(f'Iniciando processamento para a filial {filial}...')
 
                 chrome_options = Options()
-                #chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--headless=new")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
                 chrome_options.add_argument("--window-size=1920,1080")
                 driver = webdriver.Chrome(options=chrome_options)
-                driver.set_window_position(1920, 0)  # move para a segunda tela
-                driver.maximize_window()
                 wait = WebDriverWait(driver, 60)
 
                 logging.info(f"Tentando login com {email} para a filial {filial}.")
                 login(driver, wait, email, senha)
                 logging.info(f"Login bem-sucedido para {email}.")
-                logging.info(f"Coletando pedidos ativos do site para a filial {filial}.")
+
                 df_pedidos_ativos_site = navegar_paginas(driver, wait)
-                logging.info(f"Total de {len(df_pedidos_ativos_site)} pedidos ativos encontrados no site para a filial {filial}.")
+                logging.info(f"Total de {len(df_pedidos_ativos_site)} pedidos ativos encontrados para {filial}.")
 
                 if df_pedidos_ativos_site.empty:
-                    logging.info(f"Nenhum pedido ativo encontrado para a filial {filial} no site.")
-                    if os.path.exists(arquivo_csv):
-                        os.remove(arquivo_csv)
-                        logging.info(f"Arquivo '{arquivo_csv}' excluído, pois nenhum pedido ativo foi encontrado.")
-                    else:
-                        logging.info(f"Arquivo '{arquivo_csv}' não existe, nenhuma ação necessária.")
-                    break # Sai do loop de retries e vai para a próxima filial
-                
-                df_pedidos_ativos_site_duplicados = df_pedidos_ativos_site[
-                    df_pedidos_ativos_site.duplicated(subset=['Numero Pedido'], keep=False)]
-                if not df_pedidos_ativos_site_duplicados.empty:
-                    logging.warning("Atenção: Foram encontradas linhas duplicadas de pedidos ativos:")
-                    logging.warning(df_pedidos_ativos_site_duplicados)
+                    logging.info(f"Nenhum pedido ativo para {filial}.")
+                    db.deletar_pedidos_inativos(filial, set())
+                    break
 
-                if not df_pedidos_ativos_site.empty:
-                    pedidos_ativos_site = set(df_pedidos_ativos_site['Numero Pedido'].astype(str))
-                    df_detalhes_novos = pd.DataFrame()
-                    pedidos_existente = set()
+                pedidos_ativos_site = set(df_pedidos_ativos_site['Numero Pedido'].astype(str))
+                pedidos_existentes = db.get_numeros_pedido_existentes(filial)
+                novos = list(pedidos_ativos_site - pedidos_existentes)
+                df_novos = df_pedidos_ativos_site[
+                    df_pedidos_ativos_site['Numero Pedido'].isin(novos)
+                ].copy()
 
-                    if os.path.exists(arquivo_csv):
-                        try:
-                            logging.info(f"Arquivo '{arquivo_csv}' encontrado. Lendo pedidos existentes.")
-                        
-                            df_pedidos_existente = pd.read_csv(arquivo_csv, encoding='utf-8-sig',
-                                                                dtype={'CEP': str, 'Documento': str, 'IE': str,
-                                                                        'Telefone 1': str, 'Telefone 2': str,
-                                                                        'Email 1': str, 'Email 2': str})
-                            pedidos_existente = set(df_pedidos_existente['Numero Pedido'].astype(str))
-                            logging.info(f"Total de {len(pedidos_existente)} pedidos existentes no CSV para a filial {filial}.")
+                if not df_novos.empty:
+                    logging.info(f"Coletando detalhes de {len(df_novos)} novos pedidos para {filial}.")
+                    df_detalhes = coletar_detalhes(driver, wait, df_novos, pedidos_existentes, filial)
 
-                            novos_pedidos = list(pedidos_ativos_site - pedidos_existente)
-                            df_novos_pedidos = df_pedidos_ativos_site[
-                                df_pedidos_ativos_site['Numero Pedido'].isin(novos_pedidos)].copy()
-                            
-                            if not df_novos_pedidos.empty:
-                                logging.info(f"Encontrados {len(df_novos_pedidos)} novos pedidos para coletar detalhes.")
-                                df_detalhes_novos = coletar_detalhes(driver, wait, df_novos_pedidos, pedidos_existente, filial)
-                                logging.info(f"Tamanho do df_detalhes_novos após coletar detalhes: {len(df_detalhes_novos)}")
+                    if not df_detalhes.empty:
+                        df_detalhes['filial'] = filial
+                        rows = df_detalhes.rename(columns=_COL_MAP).to_dict('records')
+                        db.upsert_pedidos_itens(rows)
+                        logging.info(f"{len(df_detalhes)} linhas salvas no banco para {filial}.")
 
-                            if not df_detalhes_novos.empty:
-                                
-                                for col in expected_cols:
-                                    if col not in df_detalhes_novos.columns:
-                                        df_detalhes_novos[col] = None
-
-                                df_detalhes_novos = df_detalhes_novos[expected_cols]
-
-                                df_pedidos_existente = pd.concat([df_pedidos_existente, df_detalhes_novos],
-                                                                    ignore_index=True).drop_duplicates(
-                                        subset=['Numero Pedido', 'SKU'], keep='first')
-                                
-                                cols_to_clean = ['CEP', 'Documento', 'IE'] + \
-                                                    [f'Telefone {i}' for i in range(1, 3)] + \
-                                                    [f'Email {i}' for i in range(1, 3)]
-                                for col in cols_to_clean:
-                                    if col in df_pedidos_existente.columns:
-                                        df_pedidos_existente[col] = df_pedidos_existente[col].astype(str).replace(r'\.0$', '', regex=True)
-
-                                df_pedidos_atualizado = df_pedidos_existente[
-                                    df_pedidos_existente['Numero Pedido'].astype(str).isin(list(pedidos_ativos_site))].copy()
-                                
-                                for col in cols_to_clean:
-                                    if col in df_pedidos_atualizado.columns:
-                                        df_pedidos_atualizado[col] = df_pedidos_atualizado[col].astype(str).replace(r'\.0$', '', regex=True)
-                                
-                                
-                                for col in expected_cols:
-                                    if col not in df_pedidos_atualizado.columns:
-                                        df_pedidos_atualizado[col] = None
-                                df_pedidos_atualizado = df_pedidos_atualizado[expected_cols]
-
-                                df_pedidos_atualizado.to_csv(arquivo_csv, index=False, encoding='utf-8-sig')
-                                logging.info(f'Arquivo "{arquivo_csv}" atualizado para a filial {filial}.')
-
-                            else: 
-                                df_pedidos_atualizado = df_pedidos_existente[
-                                    df_pedidos_existente['Numero Pedido'].astype(str).isin(list(pedidos_ativos_site))].copy()
-
-                                cols_to_clean = ['CEP', 'Documento', 'IE'] + \
-                                                    [f'Telefone {i}' for i in range(1, 3)] + \
-                                                    [f'Email {i}' for i in range(1, 3)]
-                                for col in cols_to_clean:
-                                    if col in df_pedidos_atualizado.columns:
-                                        df_pedidos_atualizado[col] = df_pedidos_atualizado[col].astype(str).replace(r'\.0$', '', regex=True)
-                                
-                                for col in expected_cols:
-                                    if col not in df_pedidos_atualizado.columns:
-                                        df_pedidos_atualizado[col] = None
-                                df_pedidos_atualizado = df_pedidos_atualizado[expected_cols]
-                                
-                                df_pedidos_atualizado.to_csv(arquivo_csv, index=False, encoding='utf-8-sig')
-                                logging.info(f'Arquivo "{arquivo_csv}" atualizado (sem novos detalhes, mas com limpeza de inativos) para a filial {filial}.')
-
-
-                        except pd.errors.EmptyDataError:
-                            logging.info(f"Arquivo '{arquivo_csv}' está vazio. Criando um novo arquivo.")
-                            df_detalhes_novos = coletar_detalhes(driver, wait, df_pedidos_ativos_site, set(), filial)
-                            logging.info(f"Tamanho do df_detalhes_novos após coletar detalhes (arquivo vazio): {len(df_detalhes_novos)}")
-                            if not df_detalhes_novos.empty:
-                        
-                                for col in expected_cols:
-                                    if col not in df_detalhes_novos.columns:
-                                        df_detalhes_novos[col] = None
-                                df_detalhes_novos = df_detalhes_novos[expected_cols]
-
-                                cols_to_clean = ['CEP', 'Documento', 'IE'] + \
-                                                    [f'Telefone {i}' for i in range(1, 3)] + \
-                                                    [f'Email {i}' for i in range(1, 3)]
-                                for col in cols_to_clean:
-                                    if col in df_detalhes_novos.columns:
-                                        df_detalhes_novos[col] = df_detalhes_novos[col].astype(str).replace(r'\.0$', '', regex=True)
-                                df_detalhes_novos.to_csv(arquivo_csv, index=False, encoding='utf-8-sig')
-                                logging.info(f'Dados salvos em "{arquivo_csv}" para a filial {filial}.')
-                            else:
-                                logging.info(f"Não foram encontrados pedidos ativos para salvar no arquivo '{arquivo_csv}' da filial {filial}. ")
-
-                        except Exception as e:
-                            logging.error(f"Erro ao ler ou processar o arquivo '{arquivo_csv}': {e}")
-
-                    else:
-                        logging.info(f"Arquivo '{arquivo_csv}' não encontrado. Criando um novo arquivo.")
-                        df_detalhes_novos = coletar_detalhes(driver, wait, df_pedidos_ativos_site, set(), filial)
-                        logging.info(f"Tamanho do df_detalhes_novos após coletar detalhes (arquivo novo): {len(df_detalhes_novos)}")
-
-                        if not df_detalhes_novos.empty:
-                        
-                            for col in expected_cols:
-                                if col not in df_detalhes_novos.columns:
-                                    df_detalhes_novos[col] = None
-                            
-                            df_detalhes_novos = df_detalhes_novos[expected_cols]
-
-                            cols_to_clean = ['CEP', 'Documento', 'IE'] + \
-                                                [f'Telefone {i}' for i in range(1, 3)] + \
-                                                [f'Email {i}' for i in range(1, 3)]
-                            for col in cols_to_clean:
-                                if col in df_detalhes_novos.columns:
-                                    df_detalhes_novos[col] = df_detalhes_novos[col].astype(str).replace(r'\.0$', '', regex=True)
-                            df_detalhes_novos.to_csv(arquivo_csv, index=False, encoding='utf-8-sig')
-                            logging.info(f'Dados salvos em "{arquivo_csv}" para a filial {filial}.')
-                        else:
-                            logging.info(f"Não foram encontrados pedidos ativos para salvar no arquivo '{arquivo_csv}' da filial {filial}. ")
-
-                break 
+                db.deletar_pedidos_inativos(filial, pedidos_ativos_site)
+                logging.info(f"Pedidos inativos removidos para {filial}.")
+                break
 
             except Exception as e:
-                logging.error(f"Ocorreu um erro geral para a filial {filial}: {e}")
+                logging.error(f"Erro geral para {filial}: {e}")
                 retries += 1
-                logging.info(f"Tentando novamente... Tentativa {retries} de {max_retries_main}.")
                 if driver:
-                    driver.quit() 
-                time.sleep(10) 
+                    driver.quit()
+                time.sleep(10)
             finally:
                 if retries >= max_retries_main:
-                    logging.error(f"O script falhou após {max_retries_main} tentativas para a filial {filial}. Prosseguindo para a próxima filial, se houver.")
+                    logging.error(f"Script falhou após {max_retries_main} tentativas para {filial}.")
                 if driver and retries < max_retries_main:
                     driver.quit()
